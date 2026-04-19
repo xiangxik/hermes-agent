@@ -62,6 +62,116 @@ hermes update       # Update to the latest version
 hermes doctor       # Diagnose any issues
 ```
 
+## Docker
+
+Hermes already ships with a `Dockerfile`. The container defaults to running the CLI, and you can initialize config at `docker run` time with `--docker-init`.
+
+Persist state with a volume:
+
+```bash
+docker build -t hermes-agent .
+
+docker run --rm -it \
+  -v hermes-data:/opt/data \
+  hermes-agent
+```
+
+Initialize model/config on first run:
+
+```bash
+docker run --rm -it \
+  -e OPENAI_API_KEY="$OPENAI_API_KEY" \
+  -v hermes-data:/opt/data \
+  hermes-agent \
+  --docker-init \
+  --model gpt-4.1 \
+  --provider openai \
+  --base-url https://api.openai.com/v1 \
+  --append-toolset hermes-cli
+```
+
+Prefer `-e`, `--env-file`, or Docker/Podman secrets for credentials. `--api-key` is supported as a convenience fallback when you explicitly want the key persisted into the mounted Hermes `.env`, but it is less safe than runtime environment injection.
+
+Examples for other providers:
+
+**MiniMax**
+
+```bash
+docker run --rm -it \
+  -e MINIMAX_API_KEY="$MINIMAX_API_KEY" \
+  -v hermes-data:/opt/data \
+  hermes-agent \
+  --docker-init \
+  --provider minimax \
+  --model MiniMax-M1 \
+  --append-toolset hermes-cli
+```
+
+**Qwen (DashScope / Qwen Portal)**
+
+```bash
+docker run --rm -it \
+  -e DASHSCOPE_API_KEY="$DASHSCOPE_API_KEY" \
+  -v hermes-data:/opt/data \
+  hermes-agent \
+  --docker-init \
+  --provider qwen \
+  --model qwen-max \
+  --append-toolset hermes-cli
+```
+
+If you need a custom Qwen-compatible endpoint, also pass `-e HERMES_QWEN_BASE_URL=...` or `-e DASHSCOPE_BASE_URL=...`.
+
+**DeepSeek**
+
+```bash
+docker run --rm -it \
+  -e DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY" \
+  -v hermes-data:/opt/data \
+  hermes-agent \
+  --docker-init \
+  --provider deepseek \
+  --model deepseek-chat \
+  --append-toolset hermes-cli
+```
+
+For a custom DeepSeek-compatible endpoint, also pass `-e DEEPSEEK_BASE_URL=...`.
+
+Run the gateway directly from Docker:
+
+```bash
+docker run --rm -it \
+  -v hermes-data:/opt/data \
+  hermes-agent \
+  --docker-init \
+  --gateway
+```
+
+Forward explicit Hermes args after `--`:
+
+```bash
+docker run --rm -it \
+  -v hermes-data:/opt/data \
+  hermes-agent \
+  --docker-init \
+  --model gpt-4.1 \
+  --provider openai \
+  -- --yolo chat -q "summarize this repo"
+```
+
+Supported Docker bootstrap flags:
+
+- `--model`
+- `--provider`
+- `--base-url`
+- `--api-key`
+- `--set KEY=VALUE`
+- `--set-env KEY=VALUE`
+- `--append-toolset VALUE`
+- `--terminal-backend VALUE`
+- `--terminal-cwd VALUE`
+- `--gateway`
+
 📖 **[Full documentation →](https://hermes-agent.nousresearch.com/docs/)**
 
 ## CLI vs Messaging Quick Reference

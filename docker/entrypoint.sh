@@ -68,4 +68,12 @@ if [ -d "$INSTALL_DIR/skills" ]; then
     python3 "$INSTALL_DIR/tools/skills_sync.py"
 fi
 
+if [ "$1" = "--docker-init" ]; then
+  BOOTSTRAP_FILE=$(python3 -m hermes_cli.docker_bootstrap "$@")
+  if [ -n "$BOOTSTRAP_FILE" ] && [ -f "$BOOTSTRAP_FILE" ]; then
+    mapfile -t FORWARDED_ARGS < "$BOOTSTRAP_FILE"
+    rm -f "$BOOTSTRAP_FILE"
+    set -- "${FORWARDED_ARGS[@]}"
+  fi
+fi
 exec hermes "$@"
